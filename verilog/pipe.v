@@ -49,13 +49,11 @@ module pipe(reset, clk);
     end
 
     always @(posedge clk) begin
-        pc <= pc+1;
-        $display("inc pc %d", pc);
-        $display("instruction %h", inst);
-        $display("src dst %h %h", src, dst);
+        $display("inc pc %d\tinstruction %h\t src dst %h %h\tdata_s data_d %h %h", pc, inst, src, dst, data_s, data_d);
     end
 
     always @(negedge clk) begin
+        pc <= pc+1;
     end
 endmodule
 
@@ -85,6 +83,8 @@ module RegisterFile(data_s, data_d, data_i, addr_s, addr_d, addr_i, write, clk);
     input write, clk;
 
     reg `WORD regs `REGSIZE;
+
+    reg [5:0] i;
     
     always @(negedge clk) begin
         data_s <= regs[addr_s];
@@ -99,6 +99,11 @@ module RegisterFile(data_s, data_d, data_i, addr_s, addr_d, addr_i, write, clk);
         regs[1] = 1;
         regs[2] = 16'h8000;
         regs[3] = 16'hffff;
+        i = 4;
+        repeat (60) begin
+            regs[i] = 0;
+            i+=1;
+        end
     end
 endmodule
 
@@ -154,5 +159,5 @@ module bench;
         end
     end
 
-    always #500 $finish();
+    always #1000 $finish();
 endmodule
