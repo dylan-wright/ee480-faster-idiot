@@ -4,6 +4,23 @@
 `define MEMSIZE [32767:0]
 `define ALUOP [3:0]
 
+`define OPadd	4'b0000
+`define OPinvf	4'b0001
+`define OPaddf	4'b0010
+`define OPmulf	4'b0011
+`define OPand	4'b0100
+`define OPor	4'b0101
+`define OPxor	4'b0110
+`define OPany	4'b0111
+`define OPdup	4'b1000
+`define OPshr	4'b1001
+`define OPf2i	4'b1010
+`define OPi2f	4'b1011 // last ALU op
+`define OPld	4'b1100 // first non-ALU op
+`define OPst	4'b1101
+`define OPjzsz	4'b1110
+`define OPli	4'b1111
+
 module pipe(reset, clk);
     input reset, clk;
 
@@ -19,10 +36,14 @@ module pipe(reset, clk);
     wire `WORD data_o;
     wire wnotr;
 
+    wire `WORD z;
+    wire `ALUOP op;
+
     InstructionMemory im(inst, src, dst, pc, clk);
     RegisterFile rf(data_s, data_d, data_i, src, dst, addr_i, write, clk);
     DataMemory dm(data_o, data_s, data_d, wnotr, clk);
-    
+    Alu a(z, data_s, data_d, op);
+
     always @(reset) begin
         pc = 0;
     end
@@ -31,6 +52,10 @@ module pipe(reset, clk);
         pc <= pc+1;
         $display("inc pc %d", pc);
         $display("instruction %h", inst);
+        $display("src dst %h %h", src, dst);
+    end
+
+    always @(negedge clk) begin
     end
 endmodule
 
@@ -98,10 +123,22 @@ module DataMemory(data_o, addr, data_i, wnotr, clk);
     end
 endmodule
 
-module ALU(z, x, y, op);
+module Alu(z, x, y, op);
     output reg `WORD z;
     input `WORD x, y;
     input `ALUOP op;
+
+    always @(x, y, op) begin
+        case (op)
+            `OPadd: z = y + x;
+            `OPand: z = y & x;
+            `OPor:  z = y | x;
+            `OPxor: z = y ^ x;
+            `OPany: z = (x ? 1 : 0);
+            `OPshr: z = (x >> 1);
+            default: z = x;
+        endcase
+    end
 endmodule
 
 module bench;
@@ -117,5 +154,5 @@ module bench;
         end
     end
 
-    always #1000 $finish();
+    always #500 $finish();
 endmodule
