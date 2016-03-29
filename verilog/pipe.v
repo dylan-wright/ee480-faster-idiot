@@ -28,6 +28,7 @@ module pipe(reset, clk);
 
     wire `WORD inst;
     wire `REGADDR src, dst;
+    wire `ALUOP op;
     
     wire `WORD data_s, data_d, data_i;
     wire `REGADDR addr_i;
@@ -37,19 +38,21 @@ module pipe(reset, clk);
     wire wnotr;
 
     wire `WORD z;
-    wire `ALUOP op;
 
-    InstructionMemory im(inst, src, dst, pc, clk);
+    InstructionMemory im(inst, src, dst, op, pc, clk);
     RegisterFile rf(data_s, data_d, data_i, src, dst, addr_i, write, clk);
     DataMemory dm(data_o, data_s, data_d, wnotr, clk);
     Alu a(z, data_s, data_d, op);
 
     always @(reset) begin
         pc = 0;
+        $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz");
     end
 
     always @(posedge clk) begin
-        $display("inc pc %d\tinstruction %h\t src dst %h %h\tdata_s data_d %h %h", pc, inst, src, dst, data_s, data_d);
+        $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
+                 pc, inst, op, src, dst, data_s, data_d,z);
+        //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
     end
 
     always @(negedge clk) begin
@@ -57,9 +60,10 @@ module pipe(reset, clk);
     end
 endmodule
 
-module InstructionMemory(inst, src, dst, addr, clk);
+module InstructionMemory(inst, src, dst, op, addr, clk);
     output reg `WORD inst;
     output reg `REGADDR src, dst;
+    output reg `ALUOP op;
     input `WORD addr;
     input clk;
     
@@ -67,6 +71,7 @@ module InstructionMemory(inst, src, dst, addr, clk);
     
     always @(negedge clk) begin
         inst <= mem[addr];
+        op <= inst[15:12];
         src <= inst[11:6];
         dst <= inst[5:0];
     end
@@ -134,6 +139,7 @@ module Alu(z, x, y, op);
     input `ALUOP op;
 
     always @(x, y, op) begin
+        //$display("ALU %h %h %h", y, op, x);
         case (op)
             `OPadd: z = y + x;
             `OPand: z = y & x;
