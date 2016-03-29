@@ -35,7 +35,7 @@ module pipe(reset, clk);
     //stage 2
     wire `WORD data_s, data_d;
     reg `WORD data_i;
-    wire `REGADDR addr_i;
+    reg `REGADDR addr_i;
     reg write;
 
     wire `WORD data_o;
@@ -43,15 +43,26 @@ module pipe(reset, clk);
 
     wire `WORD z;
 
+    //pipe regs
+    //12
+    reg wb_12;
+    reg `ALUOP op_12;
+    reg `REGADDR dst_12;
+
+    //23
+    reg wb_23;
+    reg `REGADDR dst_23;
+
     InstructionMemory im(inst, src, dst, op, pc, clk);
     RegisterFile rf(data_s, data_d, data_i, src, dst, addr_i, write, clk);
     DataMemory dm(data_o, data_s, data_d, wnotr, clk);
-    Alu a(z, data_s, data_d, op);
+    Alu a(z, data_s, data_d, op_12);
 
     always @(reset) begin
         pc = 0;
         $display("0\t\t1\t\t\t2\t\t\t3");
         $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz\tdata_i");
+        
     end
 
     always @(posedge clk) begin
@@ -59,9 +70,20 @@ module pipe(reset, clk);
                  pc, inst, op, src, dst, data_s, data_d, z, data_i);
         //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
         case (op) 
-            `OPadd: begin data_i <= z; write <= 1; end
-            `OPdup: begin data_i <= z; write <= 1; end
+            `OPadd: begin wb_12 <= 1; end
+            `OPdup: begin wb_12 <= 1; end
         endcase
+        
+        wb_23 <= wb_12;
+        write <= wb_23;
+
+        op_12 <= op;
+        
+        dst_12 <= dst;
+        addr_i <= dst_12;
+        //addr_i <= dst_23;
+
+        data_i <= z;
     end
 
     always @(negedge clk) begin
@@ -80,6 +102,9 @@ module InstructionMemory(inst, src, dst, op, addr, clk);
     
     always @(negedge clk) begin
         inst <= mem[addr];
+    end
+
+    always @(inst) begin
         op <= inst[15:12];
         dst <= inst[11:6];
         src <= inst[5:0];
@@ -105,6 +130,7 @@ module RegisterFile(data_s, data_d, data_i, addr_s, addr_d, addr_i, write, clk);
         data_d <= regs[addr_d];
         if (write) begin
             regs[addr_i] <= data_i;
+            $display("wb %h", data_i);
         end
     end
 
