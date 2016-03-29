@@ -24,12 +24,15 @@
 module pipe(reset, clk);
     input reset, clk;
 
+    //stage 0
     reg `WORD pc;
 
+    //stage 1
     wire `WORD inst;
     wire `REGADDR src, dst;
     wire `ALUOP op;
     
+    //stage 2
     wire `WORD data_s, data_d;
     reg `WORD data_i;
     wire `REGADDR addr_i;
@@ -47,25 +50,18 @@ module pipe(reset, clk);
 
     always @(reset) begin
         pc = 0;
-        $display("0\t1\t2\t\t\t3");
+        $display("0\t1\t2\t\t\t\t3");
         $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz\tdata_i");
     end
 
     always @(posedge clk) begin
-        $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
+        $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
                  pc, inst, op, src, dst, data_s, data_d, z, data_i);
         //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
-        if (op < `OPld) begin
-            write <= 1;
-            data_i <= z;
-        end else begin
-            write <= 0;
-            data_i <= 16'bZ;
-        end
-        pc <= pc+1;
     end
 
     always @(negedge clk) begin
+        pc <= pc+1;
     end
 endmodule
 
@@ -81,8 +77,8 @@ module InstructionMemory(inst, src, dst, op, addr, clk);
     always @(negedge clk) begin
         inst <= mem[addr];
         op <= inst[15:12];
-        src <= inst[11:6];
-        dst <= inst[5:0];
+        dst <= inst[11:6];
+        src <= inst[5:0];
     end
 
     initial begin 
