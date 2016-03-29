@@ -50,7 +50,7 @@ module pipe(reset, clk);
 
     always @(reset) begin
         pc = 0;
-        $display("0\t1\t2\t\t\t\t3");
+        $display("0\t\t1\t\t\t2\t\t\t3");
         $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz\tdata_i");
     end
 
@@ -58,6 +58,10 @@ module pipe(reset, clk);
         $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
                  pc, inst, op, src, dst, data_s, data_d, z, data_i);
         //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
+        case (op) 
+            `OPadd: begin data_i <= z; write <= 1; end
+            `OPdup: begin data_i <= z; write <= 1; end
+        endcase
     end
 
     always @(negedge clk) begin
