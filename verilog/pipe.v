@@ -52,6 +52,7 @@ module pipe(reset, clk);
     //23
     reg wb_23;
     reg `REGADDR dst_23;
+    reg `WORD data_i_23;
 
     InstructionMemory im(inst, src, dst, op, pc, clk);
     RegisterFile rf(data_s, data_d, data_i, src, dst, addr_i, write, clk);
@@ -74,6 +75,10 @@ module pipe(reset, clk);
             `OPdup: begin wb_12 <= 1; end
         endcase
         
+    end
+
+    always @(negedge clk) begin
+        pc <= pc+1;
         wb_23 <= wb_12;
         write <= wb_23;
 
@@ -83,11 +88,8 @@ module pipe(reset, clk);
         addr_i <= dst_12;
         //addr_i <= dst_23;
 
-        data_i <= z;
-    end
-
-    always @(negedge clk) begin
-        pc <= pc+1;
+        data_i_23 <= z;
+        data_i <= data_i_23;
     end
 endmodule
 
