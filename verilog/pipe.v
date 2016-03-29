@@ -54,16 +54,23 @@ module pipe(reset, clk);
     reg `REGADDR dst_23;
     reg `WORD data_i_23;
 
+    //for forwarding
+    reg `WORD addr_s, addr_d;
+    wire forward_s, forward_d;
+    reg `WORD data_s_12, data_d_12;
+
     InstructionMemory im(inst, src, dst, op, pc, clk);
     RegisterFile rf(data_s, data_d, data_i, src, dst, addr_i, write, clk);
     DataMemory dm(data_o, data_s, data_d, wnotr, clk);
-    Alu a(z, data_s, data_d, op_12);
+    Alu a(z, data_s_12, data_d_12, op_12);
+
 
     always @(reset) begin
         pc = 0;
         $display("0\t\t1\t\t\t2\t\t\t3");
         $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz\tdata_i");
-        
+        write = 0;
+        wb_12 = 0;
     end
 
     always @(posedge clk) begin
@@ -75,22 +82,41 @@ module pipe(reset, clk);
             `OPdup: begin wb_12 <= 1; end
         endcase
         
+        data_s_12 <= (write && addr_i == addr_s ? data_i : data_s);
+        data_d_12 <= (write && addr_i == addr_d ? data_i : data_d);
     end
 
     always @(negedge clk) begin
         pc <= pc+1;
-        wb_23 <= wb_12;
-        write <= wb_23;
+
+        write <= wb_12;
+        //write <= wb_23;
 
         op_12 <= op;
         
-        dst_12 <= dst;
         addr_i <= dst_12;
+        dst_12 <= dst;
         //addr_i <= dst_23;
 
-        data_i_23 <= z;
-        data_i <= data_i_23;
+        data_i <= z;
+        //data_i <= data_i_23;
+
+        addr_s <= src;
+        addr_d <= dst;
+
     end
+
+/*
+    always @(write, addr_i, addr_s, addr_d) begin
+        if (write && addr_i == addr_s) begin
+            data_s <= data_i;
+        end
+
+        if (write && addr_i == addr_d) begin
+            data_d <= data_i;
+        end
+    end
+*/
 endmodule
 
 module InstructionMemory(inst, src, dst, op, addr, clk);
@@ -132,7 +158,6 @@ module RegisterFile(data_s, data_d, data_i, addr_s, addr_d, addr_i, write, clk);
         data_d <= regs[addr_d];
         if (write) begin
             regs[addr_i] <= data_i;
-            $display("wb %h", data_i);
         end
     end
 
