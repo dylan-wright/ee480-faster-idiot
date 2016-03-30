@@ -49,11 +49,13 @@ module pipe(halt, reset, clk);
     reg wb_12;
     reg `ALUOP op_12;
     reg `REGADDR dst_12;
+    reg wnotr_12;
 
     //23
     reg wb_23;
     reg `REGADDR dst_23;
     reg `WORD data_i_23;
+    reg `ALUOP op_23;
 
     //for forwarding
     reg `WORD addr_s, addr_d;
@@ -62,7 +64,7 @@ module pipe(halt, reset, clk);
 
     InstructionMemory im(inst, src, dst, op, pc, clk);
     RegisterFile rf(data_s, data_d, data_i, src, dst, addr_i, write, clk);
-    DataMemory dm(data_o, data_s, data_d, wnotr, clk);
+    DataMemory dm(data_o, data_s_s_12, data_d_12, wnotr_12, clk);
     Alu a(z, data_s_12, data_d_12, op_12);
 
     always @(reset) begin
@@ -80,22 +82,22 @@ module pipe(halt, reset, clk);
         //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
         
         case (op) 
-            `OPadd: begin wb_12 <= 1; end
-            `OPinvf: begin wb_12 <= 1; end
-            `OPaddf: begin wb_12 <= 1; end
-            `OPmulf: begin wb_12 <= 1; end
-            `OPand: begin wb_12 <= 1; end
-            `OPor: begin wb_12 <= 1; end
-            `OPxor: begin wb_12 <= 1; end
-            `OPany: begin wb_12 <= 1; end
-            `OPdup: begin wb_12 <= 1; end
-            `OPshr: begin wb_12 <= 1; end
-            `OPf2i: begin wb_12 <= 1; end
-            `OPi2f: begin wb_12 <= 1; end
-            `OPld: begin wb_12 <= 1; end
-            `OPst: begin wb_12 <= 0; end
-            `OPjzsz: begin wb_12 <= 0; end
-            `OPli: begin wb_12 <= 0; end
+            `OPadd: begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPinvf: begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPaddf: begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPmulf: begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPand: begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPor: begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPxor: begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPany: begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPdup: begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPshr: begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPf2i: begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPi2f: begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPld: begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPst: begin wb_12 <= 0; wnotr_12 <= 1; end
+            `OPjzsz: begin wb_12 <= 0; wnotr_12 <= 0; end
+            `OPli: begin wb_12 <= 0; wnotr_12 <= 0; end
             default: begin
                 $display("halt");
                 //halt <= 1;
@@ -114,7 +116,8 @@ module pipe(halt, reset, clk);
         write <= wb_23;
 
         op_12 <= op;
-        
+        op_23 <= op_12;
+
         addr_i <= dst_12;
         dst_12 <= dst;
         //addr_i <= dst_23;
@@ -126,7 +129,7 @@ module pipe(halt, reset, clk);
 
         addr_s <= src;
         addr_d <= dst;
-
+        
     end
 endmodule
 
