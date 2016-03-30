@@ -65,7 +65,6 @@ module pipe(halt, reset, clk);
     DataMemory dm(data_o, data_s, data_d, wnotr, clk);
     Alu a(z, data_s_12, data_d_12, op_12);
 
-
     always @(reset) begin
         pc = 0;
         $display("0\t\t1\t\t\t2\t\t\t3");
@@ -79,15 +78,31 @@ module pipe(halt, reset, clk);
         $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
                  pc, inst, op, src, dst, data_s, data_d, z, data_i);
         //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
+        
         case (op) 
             `OPadd: begin wb_12 <= 1; end
+            `OPinvf: begin wb_12 <= 1; end
+            `OPaddf: begin wb_12 <= 1; end
+            `OPmulf: begin wb_12 <= 1; end
+            `OPand: begin wb_12 <= 1; end
+            `OPor: begin wb_12 <= 1; end
+            `OPxor: begin wb_12 <= 1; end
+            `OPany: begin wb_12 <= 1; end
             `OPdup: begin wb_12 <= 1; end
+            `OPshr: begin wb_12 <= 1; end
+            `OPf2i: begin wb_12 <= 1; end
+            `OPi2f: begin wb_12 <= 1; end
+            `OPld: begin wb_12 <= 1; end
+            `OPst: begin wb_12 <= 0; end
+            `OPjzsz: begin wb_12 <= 0; end
+            `OPli: begin wb_12 <= 0; end
             default: begin
                 $display("halt");
                 //halt <= 1;
             end
         endcase
         
+        //wb_12 <= (op !== 1'bx && op < `OPst ? 1 : 0);
         data_s_12 <= (write && addr_i == addr_s ? data_i : data_s);
         data_d_12 <= (write && addr_i == addr_d ? data_i : data_d);
     end
@@ -95,8 +110,8 @@ module pipe(halt, reset, clk);
     always @(negedge clk) begin
         pc <= pc+1;
 
-        write <= wb_12;
-        //write <= wb_23;
+        wb_23 <= wb_12;
+        write <= wb_23;
 
         op_12 <= op;
         
@@ -104,7 +119,9 @@ module pipe(halt, reset, clk);
         dst_12 <= dst;
         //addr_i <= dst_23;
 
-        data_i <= z;
+        data_i <= (op_12 == `OPld ? data_o : z);
+        //data_i <= data_o;
+        //data_i <= z;
         //data_i <= data_i_23;
 
         addr_s <= src;
