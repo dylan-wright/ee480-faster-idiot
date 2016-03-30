@@ -21,8 +21,9 @@
 `define OPjzsz	4'b1110
 `define OPli	4'b1111
 
-module pipe(reset, clk);
+module pipe(halt, reset, clk);
     input reset, clk;
+    output reg halt;
 
     //stage 0
     reg `WORD pc;
@@ -71,15 +72,20 @@ module pipe(reset, clk);
         $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz\tdata_i");
         write = 0;
         wb_12 = 0;
+        halt = 0;
     end
 
     always @(posedge clk) begin
-        $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
+        $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
                  pc, inst, op, src, dst, data_s, data_d, z, data_i);
         //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
         case (op) 
             `OPadd: begin wb_12 <= 1; end
             `OPdup: begin wb_12 <= 1; end
+            default: begin
+                $display("halt");
+                //halt <= 1;
+            end
         endcase
         
         data_s_12 <= (write && addr_i == addr_s ? data_i : data_s);
@@ -105,18 +111,6 @@ module pipe(reset, clk);
         addr_d <= dst;
 
     end
-
-/*
-    always @(write, addr_i, addr_s, addr_d) begin
-        if (write && addr_i == addr_s) begin
-            data_s <= data_i;
-        end
-
-        if (write && addr_i == addr_d) begin
-            data_d <= data_i;
-        end
-    end
-*/
 endmodule
 
 module InstructionMemory(inst, src, dst, op, addr, clk);
@@ -216,18 +210,19 @@ endmodule
 
 module bench;
     reg clk, reset;
-    pipe uut(reset, clk);
+    wire halt;
+    pipe uut(halt, reset, clk);
 
     initial begin
         $dumpfile("dump.vcd");
         $dumpvars(0, uut);
         #10 reset = 1;
         #10 reset = 0;
-        while (1) begin
+        while (!halt) begin
             #10 clk = 1;
             #10 clk = 0;
         end
     end
-
+    
     always #1000 $finish();
 endmodule
