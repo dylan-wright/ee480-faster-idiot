@@ -82,23 +82,23 @@ module pipe(halt, reset, clk);
         //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
         
         case (op) 
-            `OPadd: begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPinvf: begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPaddf: begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPmulf: begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPand: begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPor: begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPxor: begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPany: begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPdup: begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPshr: begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPf2i: begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPi2f: begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPld: begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPst: begin wb_12 <= 0; wnotr_12 <= 1; end
-            `OPjzsz: begin wb_12 <= 0; wnotr_12 <= 0; end
-            `OPli: begin wb_12 <= 0; wnotr_12 <= 0; end
-            default: begin
+            `OPadd:     begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPinvf:    begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPaddf:    begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPmulf:    begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPand:     begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPor:      begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPxor:     begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPany:     begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPdup:     begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPshr:     begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPf2i:     begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPi2f:     begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPld:      begin wb_12 <= 1; wnotr_12 <= 0; end
+            `OPst:      begin wb_12 <= 0; wnotr_12 <= 1; end
+            `OPjzsz:    begin wb_12 <= 0; wnotr_12 <= 0; end
+            `OPli:      begin wb_12 <= 0; wnotr_12 <= 0; end
+            default:    begin
                 $display("halt");
                 //halt <= 1;
             end

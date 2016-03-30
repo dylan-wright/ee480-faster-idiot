@@ -21,13 +21,14 @@ def main():
     response = post_inputs(sinput, iinput)
 
     msg_dict = parse_response(response.text)
-   
+    ''' 
     if (msg_dict["spec"] != "" and msg_dict["code"] != "" and msg_dict["anal"] != ""):
         print("Spec:", msg_dict["spec"], file=sys.stderr, sep="\n")
         print("Code:", msg_dict["code"], file=sys.stderr, sep="\n")
         print("Anal:", msg_dict["anal"], file=sys.stderr, sep="\n")
-    print("Text:", msg_dict["text"], sep="\n")
-    print("Data:", msg_dict["data"], sep="\n")
+    '''
+    print(msg_dict["text"], file=sys.stdout)
+    print(msg_dict["data"], file=sys.stderr)
 
 def input_files(spec_file, prog_file):
     file_in = open(spec_file, "r")
