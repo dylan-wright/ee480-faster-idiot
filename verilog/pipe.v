@@ -64,21 +64,21 @@ module pipe(halt, reset, clk);
 
     InstructionMemory im(inst, src, dst, op, pc, clk);
     RegisterFile rf(data_s, data_d, data_i, src, dst, addr_i, write, clk);
-    DataMemory dm(data_o, data_s_s_12, data_d_12, wnotr_12, clk);
+    DataMemory dm(data_o, data_s_12, data_d_12, wnotr_12, clk);
     Alu a(z, data_s_12, data_d_12, op_12);
 
     always @(reset) begin
         pc = 0;
         $display("0\t\t1\t\t\t2\t\t\t3");
-        $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz\tdata_i");
+        $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz\tdata_o\tdata_i");
         write = 0;
         wb_12 = 0;
         halt = 0;
     end
 
     always @(posedge clk) begin
-        $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
-                 pc, inst, op, src, dst, data_s, data_d, z, data_i);
+        $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
+                 pc, inst, op, src, dst, data_s, data_d, z, data_o, data_i);
         //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
         
         case (op) 
@@ -153,7 +153,7 @@ module InstructionMemory(inst, src, dst, op, addr, clk);
     end
 
     initial begin 
-        $readmemh("prog_adds.out", mem);
+        $readmemh("prog_loads.out", mem);
     end 
 endmodule
 

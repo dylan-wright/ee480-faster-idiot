@@ -1,0 +1,4 @@
+dup $u0, $0
+dup $u1, $1
+ld $u2, $u0
+ld $u3, $u1
