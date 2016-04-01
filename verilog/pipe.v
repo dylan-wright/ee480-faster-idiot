@@ -62,6 +62,9 @@ module pipe(halt, reset, clk);
     wire forward_s, forward_d;
     reg `WORD data_s_12, data_d_12;
 
+    //for jumps
+    reg [1:0] pcinc;
+
     InstructionMemory im(inst, src, dst, op, pc, clk);
     RegisterFile rf(data_s, data_d, data_i, src, dst, addr_i, write, clk);
     DataMemory dm(data_o, data_s_12, data_d_12, wnotr_12, clk);
@@ -80,7 +83,7 @@ module pipe(halt, reset, clk);
         $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
                  pc, inst, op, src, dst, data_s, data_d, z, data_o, data_i);
         //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
-        
+        pcinc <= 1;
         case (op) 
             `OPadd:     begin wb_12 <= 1; wnotr_12 <= 0; end
             `OPinvf:    begin wb_12 <= 1; wnotr_12 <= 0; end
@@ -96,7 +99,13 @@ module pipe(halt, reset, clk);
             `OPi2f:     begin wb_12 <= 1; wnotr_12 <= 0; end
             `OPld:      begin wb_12 <= 1; wnotr_12 <= 0; end
             `OPst:      begin wb_12 <= 0; wnotr_12 <= 1; end
-            `OPjzsz:    begin wb_12 <= 0; wnotr_12 <= 0; end
+            `OPjzsz:    begin 
+                case (addr_s)
+                    0:          begin halt <= 1; end
+                    1:          begin pcinc <= 2; end
+                    default:    begin end
+                endcase
+                        end
             `OPli:      begin wb_12 <= 0; wnotr_12 <= 0; end
             default:    begin
                 $display("halt");
@@ -110,7 +119,7 @@ module pipe(halt, reset, clk);
     end
 
     always @(negedge clk) begin
-        pc <= pc+1;
+        pc <= pc+pcinc;
 
         wb_23 <= wb_12;
         write <= wb_23;
