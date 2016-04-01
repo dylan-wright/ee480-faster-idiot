@@ -1,0 +1,12 @@
+dup $u0, $0
+add $u0, $1
+add $u0, $1
+add $u0, $1
+add $u0, $1
+sz $u0
+sys
+add $u0, $1
+add $u0, $1
+add $u0, $1
+add $u0, $1
+sys

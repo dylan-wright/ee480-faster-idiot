@@ -100,9 +100,11 @@ module pipe(halt, reset, clk);
             `OPld:      begin wb_12 <= 1; wnotr_12 <= 0; end
             `OPst:      begin wb_12 <= 0; wnotr_12 <= 1; end
             `OPjzsz:    begin 
+                wb_12 <= 0;
+                wnotr_12 <= 0;
                 case (addr_s)
                     0:          begin halt <= 1; end
-                    1:          begin pcinc <= 2; end
+                    1:          begin pc <= pc+2; end
                     default:    begin end
                 endcase
                         end
@@ -162,7 +164,7 @@ module InstructionMemory(inst, src, dst, op, addr, clk);
     end
 
     initial begin 
-        $readmemh("prog_loads.out", mem);
+        $readmemh("prog_jumps.text.vmem", mem);
     end 
 endmodule
 
@@ -180,7 +182,9 @@ module RegisterFile(data_s, data_d, data_i, addr_s, addr_d, addr_i, write, clk);
         data_s <= regs[addr_s];
         data_d <= regs[addr_d];
         if (write) begin
+            $display("write %h", data_i);
             regs[addr_i] <= data_i;
+            $display("%h", regs[addr_i]);
         end
     end
 
