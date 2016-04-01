@@ -1,0 +1,49 @@
+[*]
+[*] GTKWave Analyzer v3.3.64 (w)1999-2014 BSI
+[*] Wed Mar 30 22:26:42 2016
+[*]
+[dumpfile] "/home/dylan/school/EE480/a3/verilog/dump.vcd"
+[dumpfile_mtime] "Wed Mar 30 18:44:51 2016"
+[dumpfile_size] 4707
+[savefile] "/home/dylan/school/EE480/a3/verilog/gtkconfig.gtkw"
+[timestart] 0
+[size] 1366 626
+[pos] -1 -1
+*-6.000000 10 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] bench.
+[treeopen] bench.uut.
+[sst_width] 214
+[signals_width] 150
+[sst_expanded] 1
+[sst_vpaned_height] 160
+@28
+bench.uut.clk
+@22
+bench.uut.pc[15:0]
+bench.uut.inst[15:0]
+bench.uut.src[5:0]
+bench.uut.dst[5:0]
+bench.uut.op[3:0]
+bench.uut.op_12[3:0]
+bench.uut.z[15:0]
+@28
+bench.uut.wb_12
+bench.uut.write
+@22
+bench.uut.src[5:0]
+bench.uut.dst[5:0]
+bench.uut.dst_12[5:0]
+bench.uut.addr_i[5:0]
+bench.uut.data_i[15:0]
+bench.uut.data_d_12[15:0]
+bench.uut.data_d[15:0]
+bench.uut.addr_d[15:0]
+bench.uut.addr_i[5:0]
+bench.uut.addr_s[15:0]
+bench.uut.data_d[15:0]
+bench.uut.data_s[15:0]
+bench.uut.data_s_12[15:0]
+@23
+bench.uut.data_i[15:0]
+[pattern_trace] 1
+[pattern_trace] 0

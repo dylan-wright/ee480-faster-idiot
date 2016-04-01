@@ -1,0 +1,3 @@
+add $u0, $u1
+and $u5, $u2
+or $u2, $u0
