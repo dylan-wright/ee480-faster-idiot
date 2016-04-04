@@ -182,9 +182,9 @@ module RegisterFile(data_s, data_d, data_i, addr_s, addr_d, addr_i, write, clk);
         data_s <= regs[addr_s];
         data_d <= regs[addr_d];
         if (write) begin
-            $display("write %h", data_i);
+            //$display("write %h", data_i);
             regs[addr_i] <= data_i;
-            $display("%h", regs[addr_i]);
+            //$display("%h", regs[addr_i]);
         end
     end
 
@@ -218,7 +218,7 @@ module DataMemory(data_o, addr, data_i, wnotr, clk);
     end
 
     initial begin
-        $readmemh("dm.vmem", mem);
+        $readmemh("prog_dietz.data.vmem", mem);
     end
 endmodule
 

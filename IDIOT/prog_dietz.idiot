@@ -1,0 +1,42 @@
+  .data
+test:
+  .word 0x601
+  .text
+main:
+  li   $u0,0x1003
+  add  $u0,$one ; u0=0x1004
+  li   $u1,0x4321
+  li   $u2,0x1234
+  and  $u1,$u2 ; u1=0x0220
+  li   $u3,0x4321
+  or   $u2,$u3 ; u2=0x5335
+  li   $u4,0x1234
+  xor  $u3,$u4 ; u3=0x5115
+  any  $u4,$u4 ; u4=1
+  any  $u5,$zero ; u5=0
+  dup  $u6,$sign ; u6=0x8000
+  li   $u7,0x8421
+  shr  $u7,$u7 ; u7=0x4210
+  li   $u8,test ; u8=0x8000
+  li   $u9,0x0042 ; u9=0x0042
+  st   $u9,$u8 ; test=42
+  ld   $u10,$u8 ; u10=0x0042
+  dup  $u11,$zero ; u11=0
+  li   $u12,taken
+  jz   $u11,$u12
+  dup  $u11,$one ; should not happen
+taken:
+  dup  $u12,$one
+  li   $u13,nottaken
+  jz   $u12,$u13
+  dup  $u12,$all ; u12=0xffff
+nottaken:
+  sz   $u13
+  dup  $u13,$zero ; u13=0x0000
+  dup  $u14,$zero ; u14=0x0000
+  sz   $u14
+  dup  $u14,$one
+  dup  $u15,$zero ; u15=0x0000
+  sys
+good:
+  dup  $u15,$all ; should not execute
