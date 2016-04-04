@@ -64,6 +64,7 @@ module pipe(halt, reset, clk);
 
     //for jumps
     reg [1:0] pcinc;
+    reg jump_mem_12, jump_mem_23, jump_mem;
 
     InstructionMemory im(inst, src, dst, op, pc, clk);
     RegisterFile rf(data_s, data_d, data_i, src, dst, addr_i, write, clk);
@@ -73,39 +74,40 @@ module pipe(halt, reset, clk);
     always @(reset) begin
         pc = 0;
         $display("0\t\t1\t\t\t2\t\t\t3");
-        $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz\tdata_o\tdata_i");
+        $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz\tdata_o\tdata_i\tjm12\tjm23\tjm");
         write = 0;
         wb_12 = 0;
         halt = 0;
     end
 
     always @(posedge clk) begin
-        $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
-                 pc, inst, op, src, dst, data_s, data_d, z, data_o, data_i);
+        $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
+                 pc, inst, op, src, dst, data_s, data_d, z, data_o, data_i, jump_mem_12, jump_mem_23, jump_mem);
         //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
         pcinc <= 1;
         case (op) 
-            `OPadd:     begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPinvf:    begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPaddf:    begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPmulf:    begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPand:     begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPor:      begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPxor:     begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPany:     begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPdup:     begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPshr:     begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPf2i:     begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPi2f:     begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPld:      begin wb_12 <= 1; wnotr_12 <= 0; end
-            `OPst:      begin wb_12 <= 0; wnotr_12 <= 1; end
+            `OPadd:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
+            `OPinvf:    begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
+            `OPaddf:    begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
+            `OPmulf:    begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
+            `OPand:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
+            `OPor:      begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
+            `OPxor:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
+            `OPany:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
+            `OPdup:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
+            `OPshr:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
+            `OPf2i:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
+            `OPi2f:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
+            `OPld:      begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
+            `OPst:      begin wb_12 <= 0; wnotr_12 <= 1; jump_mem_12 <= 0; end
             `OPjzsz:    begin 
+                $display("addr_s %h", addr_s);
                 wb_12 <= 0;
                 wnotr_12 <= 0;
-                case (addr_s)
-                    0:          begin halt <= 1; end
-                    1:          begin pc <= pc+1; end
-                    default:    begin end
+                case (src)
+                    0:          begin halt <= 1; jump_mem_12 <= 0; end
+                    1:          begin pc <= pc+1; jump_mem_12 <= 0;  end
+                    default:    begin jump_mem_12 <= 1; end
                 endcase
             end
             `OPli:      begin wb_12 <= 0; wnotr_12 <= 0; end
@@ -121,7 +123,13 @@ module pipe(halt, reset, clk);
     end
 
     always @(negedge clk) begin
-        pc <= pc+pcinc;
+        if (jump_mem) begin
+            pc <= data_s_12;
+            write <= 0;
+            $display("js to %h", data_s_12);
+        end else begin
+            pc <= pc+1;
+        end
 
         wb_23 <= wb_12;
         write <= wb_23;
@@ -140,7 +148,10 @@ module pipe(halt, reset, clk);
 
         addr_s <= src;
         addr_d <= dst;
-        
+       
+        //jump_mem_23 <= jump_mem_12;
+        //jump_mem <= jump_mem_23;
+        jump_mem <= jump_mem_12;
     end
 endmodule
 
