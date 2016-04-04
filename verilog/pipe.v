@@ -101,7 +101,6 @@ module pipe(halt, reset, clk);
             `OPld:      begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
             `OPst:      begin wb_12 <= 0; wnotr_12 <= 1; jump_mem_12 <= 0; end
             `OPjzsz:    begin 
-                $display("addr_s %h", addr_s);
                 wb_12 <= 0;
                 wnotr_12 <= 0;
                 case (src)
@@ -125,7 +124,6 @@ module pipe(halt, reset, clk);
     always @(negedge clk) begin
         if (jump_mem) begin
             pc <= data_s_12;
-            write <= 0;
             $display("js to %h", data_s_12);
         end else begin
             pc <= pc+1;
