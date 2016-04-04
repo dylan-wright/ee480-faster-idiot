@@ -104,10 +104,10 @@ module pipe(halt, reset, clk);
                 wnotr_12 <= 0;
                 case (addr_s)
                     0:          begin halt <= 1; end
-                    1:          begin pc <= pc+2; end
+                    1:          begin pc <= pc+1; end
                     default:    begin end
                 endcase
-                        end
+            end
             `OPli:      begin wb_12 <= 0; wnotr_12 <= 0; end
             default:    begin
                 $display("halt");
