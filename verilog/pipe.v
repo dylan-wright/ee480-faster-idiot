@@ -66,6 +66,10 @@ module pipe(halt, reset, clk);
     reg [1:0] pcinc;
     reg jump_mem_12, jump_mem_23, jump_mem;
 
+    //for li
+    reg [1:0] li;
+    reg `WORD imm;
+
     InstructionMemory im(inst, src, dst, op, pc, clk);
     RegisterFile rf(data_s, data_d, data_i, src, dst, addr_i, write, clk);
     DataMemory dm(data_o, data_s_12, data_d_12, wnotr_12, clk);
@@ -74,42 +78,53 @@ module pipe(halt, reset, clk);
     always @(reset) begin
         pc = 0;
         $display("0\t\t1\t\t\t2\t\t\t3");
-        $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz\tdata_o\tdata_i\tjm12\tjm23\tjm");
+        $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz\tdata_o\tdata_i\tjm12\tjm23\tjm\tli\timm");
         write = 0;
         wb_12 = 0;
         halt = 0;
     end
 
     always @(posedge clk) begin
-        $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
-                 pc, inst, op, src, dst, data_s, data_d, z, data_o, data_i, jump_mem_12, jump_mem_23, jump_mem);
+        $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
+                 pc, inst, op, src, dst, data_s, data_d, z, data_o, data_i, jump_mem_12, jump_mem_23, jump_mem, li, imm);
         //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
         pcinc <= 1;
+        if (li == 1) begin
+            //save op+dst+src into addr_dst
+            op_12 <= 0;
+            wb_12 <= 1;
+            li <= 2;
+            data_d_12 <= {op,dst,src};
+            data_s_12 <= 0;
+        end else if (li == 2) begin
+            li <= 0;
+        end else begin
         case (op) 
-            `OPadd:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPinvf:    begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPaddf:    begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPmulf:    begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPand:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPor:      begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPxor:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPany:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPdup:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPshr:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPf2i:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPi2f:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPld:      begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPst:      begin wb_12 <= 0; wnotr_12 <= 1; jump_mem_12 <= 0; end
+            `OPadd:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
+            `OPinvf:    begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
+            `OPaddf:    begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
+            `OPmulf:    begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
+            `OPand:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
+            `OPor:      begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
+            `OPxor:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
+            `OPany:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
+            `OPdup:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
+            `OPshr:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
+            `OPf2i:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
+            `OPi2f:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
+            `OPld:      begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
+            `OPst:      begin wb_12 <= 0; wnotr_12 <= 1; jump_mem_12 <= 0; li <= 0; end
             `OPjzsz:    begin 
                 wb_12 <= 0;
                 wnotr_12 <= 0;
+                li <= 0;
                 case (src)
                     0:          begin halt <= 1; jump_mem_12 <= 0; end
                     1:          begin pc <= pc+1; jump_mem_12 <= 0;  end
                     default:    begin jump_mem_12 <= 1; end
                 endcase
             end
-            `OPli:      begin wb_12 <= 0; wnotr_12 <= 0; end
+            `OPli:      begin wb_12 <= 0; wnotr_12 <= 0; li <= 1; end
             default:    begin
                 $display("halt");
                 //halt <= 1;
@@ -119,6 +134,7 @@ module pipe(halt, reset, clk);
         //wb_12 <= (op !== 1'bx && op < `OPst ? 1 : 0);
         data_s_12 <= (write && addr_i == addr_s ? data_i : data_s);
         data_d_12 <= (write && addr_i == addr_d ? data_i : data_d);
+        end
     end
 
     always @(negedge clk) begin
@@ -128,28 +144,32 @@ module pipe(halt, reset, clk);
         end else begin
             pc <= pc+1;
         end
+        
+        if (li==1) begin
+           
+        end else begin
+            wb_23 <= wb_12;
+            write <= wb_23;
 
-        wb_23 <= wb_12;
-        write <= wb_23;
+            op_12 <= op;
+            op_23 <= op_12;
 
-        op_12 <= op;
-        op_23 <= op_12;
+            addr_i <= dst_12;
+            dst_12 <= dst;
+            //addr_i <= dst_23;
 
-        addr_i <= dst_12;
-        dst_12 <= dst;
-        //addr_i <= dst_23;
+            data_i <= (op_12 == `OPld ? data_o : z);
+            //data_i <= data_o;
+            //data_i <= z;
+            //data_i <= data_i_23;
 
-        data_i <= (op_12 == `OPld ? data_o : z);
-        //data_i <= data_o;
-        //data_i <= z;
-        //data_i <= data_i_23;
-
-        addr_s <= src;
-        addr_d <= dst;
-       
-        //jump_mem_23 <= jump_mem_12;
-        //jump_mem <= jump_mem_23;
-        jump_mem <= jump_mem_12;
+            addr_s <= src;
+            addr_d <= dst;
+           
+            //jump_mem_23 <= jump_mem_12;
+            //jump_mem <= jump_mem_23;
+            jump_mem <= jump_mem_12;
+        end
     end
 endmodule
 
@@ -173,7 +193,7 @@ module InstructionMemory(inst, src, dst, op, addr, clk);
     end
 
     initial begin 
-        $readmemh("prog_jumps.text.vmem", mem);
+        $readmemh("prog_adds.text.vmem", mem);
     end 
 endmodule
 
