@@ -1,3 +1,9 @@
+/*  EE 480: A Faster IDIOT
+ *      Dylan Wright
+ *      Kristina Shaeffer
+ *      Zachary Davis
+ */
+
 `define WORD [15:0]
 `define REGADDR [5:0]
 `define REGSIZE [63:0]
@@ -67,7 +73,7 @@ module pipe(halt, reset, clk);
     reg jump_mem_12, jump_mem_23, jump_mem;
 
     //for li
-    reg [1:0] li;
+    reg li;
     reg `WORD imm;
 
     InstructionMemory im(inst, src, dst, op, pc, clk);
@@ -92,12 +98,10 @@ module pipe(halt, reset, clk);
         if (li == 1) begin
             //save op+dst+src into addr_dst
             op_12 <= 0;
-            wb_12 <= 1;
-            li <= 2;
-            data_d_12 <= {op,dst,src};
-            data_s_12 <= 0;
-        end else if (li == 2) begin
             li <= 0;
+            data_d_12 <= inst;
+            data_s_12 <= 0;
+            wb_12 <= 0;
         end else begin
         case (op) 
             `OPadd:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; li <= 0; end
@@ -124,7 +128,7 @@ module pipe(halt, reset, clk);
                     default:    begin jump_mem_12 <= 1; end
                 endcase
             end
-            `OPli:      begin wb_12 <= 0; wnotr_12 <= 0; li <= 1; end
+            `OPli:      begin wb_12 <= 1; wnotr_12 <= 0; li <= 1; end
             default:    begin
                 $display("halt");
                 //halt <= 1;
@@ -132,8 +136,21 @@ module pipe(halt, reset, clk);
         endcase
         
         //wb_12 <= (op !== 1'bx && op < `OPst ? 1 : 0);
-        data_s_12 <= (write && addr_i == addr_s ? data_i : data_s);
-        data_d_12 <= (write && addr_i == addr_d ? data_i : data_d);
+        if (write && addr_i == addr_s) begin
+            data_s_12 <= data_i;
+        end else if (li) begin
+            data_s_12 <= imm;
+        end else begin
+            data_s_12 <= data_s;
+        end
+
+        if (write && addr_i == addr_d) begin
+            data_d_12 <= data_i;
+        end else if (li) begin
+            data_d_12 <= 0;
+        end else begin
+            data_d_12 <= data_d;
+        end
         end
     end
 
@@ -146,7 +163,9 @@ module pipe(halt, reset, clk);
         end
         
         if (li==1) begin
-           
+            dst_12 <= dst;
+            wb_23 <= wb_12;
+            write <= wb_23;
         end else begin
             wb_23 <= wb_12;
             write <= wb_23;
@@ -193,7 +212,7 @@ module InstructionMemory(inst, src, dst, op, addr, clk);
     end
 
     initial begin 
-        $readmemh("prog_test_li.text.vmem", mem);
+        $readmemh("prog_jumps.text.vmem", mem);
     end 
 endmodule
 
@@ -216,6 +235,7 @@ module RegisterFile(data_s, data_d, data_i, addr_s, addr_d, addr_i, write, clk);
             //$display("%h", regs[addr_i]);
         end
     end
+
 
     initial begin
         regs[0] = 0;
