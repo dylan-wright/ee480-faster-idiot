@@ -122,7 +122,7 @@ module pipe(halt, reset, clk);
     end
 
     always @(negedge clk) begin
-        if (jump_mem) begin
+        if (jump_mem && data_d_12 == 0) begin
             pc <= data_s_12;
             $display("js to %h", data_s_12);
         end else begin
