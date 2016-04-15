@@ -83,17 +83,27 @@ module pipe(halt, reset, clk);
 
     always @(reset) begin
         pc = 0;
-        $display("0\t\t1\t\t\t2\t\t\t3");
-        $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz\tdata_o\tdata_i\tjm12\tjm23\tjm\tli\timm");
         write = 0;
         wb_12 = 0;
         halt = 0;
     end
 
     always @(posedge clk) begin
-        $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
-                 pc, inst, op, src, dst, data_s, data_d, z, data_o, data_i, jump_mem_12, jump_mem_23, jump_mem, li, imm);
-        //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
+        $display("       src     data_s   data_s_12                           ");
+        $display("       %h      %h     %h       data_i                   ",src,data_s,data_s_12);
+        $display("                                   %h                       ",data_i);
+        $display("pc     dst     data_d   data_s_12                           ");
+        $display("%h   %h      %h     %h                                ",pc,dst,data_d,data_d_12);
+        $display("                                                          ");
+        $display("       op      op_12    op_23                               ");
+        $display("       %h       %h        %h                                   ",op,op_12,op_23);
+        $display("       inst    addr_d   addr_i                              ");
+        $display("       %h    %h     %h                                 ",inst,addr_d,addr_i);
+        $display("               addr_s                                     ");
+        $display("               %h                                         ",addr_s);
+        $display("               wb_12    wb_23      write                      ");
+        $display("               %h        %h          %h                         ",wb_12,wb_23,write);
+        $display("                                                          ");
         pcinc <= 1;
         if (li == 1) begin
             //save op+dst+src into addr_dst
@@ -123,8 +133,8 @@ module pipe(halt, reset, clk);
                 wnotr_12 <= 0;
                 li <= 0;
                 case (src)
-                    0:          begin halt <= 1; jump_mem_12 <= 0; end
-                    1:          begin pc <= pc+1; jump_mem_12 <= 0;  end
+                    0:          begin  jump_mem_12 <= 0; end
+                    1:          begin jump_mem_12 <= 1;  end
                     default:    begin jump_mem_12 <= 1; end
                 endcase
             end
@@ -155,15 +165,26 @@ module pipe(halt, reset, clk);
     end
 
     always @(negedge clk) begin
-        if (jump_mem) begin
-            pc <= data_s_12;
+        if (jump_mem && z == 0) begin
+            if (addr_s == 1) begin
+                pc <= pc+1;
+            end else if (addr_s == 1) begin
+                pc <= data_s_12;
+            end
             $display("js to %h", data_s_12);
         end else begin
             pc <= pc+1;
         end
+
+        if (op_12 == `OPjzsz && addr_s == 0) begin
+            halt <= 1;
+            $display("halt");
+        end
         
         if (li==1) begin
+            addr_d <= dst;
             dst_12 <= dst;
+            
             wb_23 <= wb_12;
             write <= wb_23;
         end else begin
@@ -212,7 +233,7 @@ module InstructionMemory(inst, src, dst, op, addr, clk);
     end
 
     initial begin 
-        $readmemh("prog_jumps.text.vmem", mem);
+        $readmemh("prog_li_xor.text.vmem", mem);
     end 
 endmodule
 
