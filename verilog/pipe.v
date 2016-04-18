@@ -48,7 +48,7 @@ module pipe(halt, reset, clk);
     //12
     reg wb_12;
     reg `ALUOP op_12;
-    reg `REGADDR dst_12;
+    reg `REGADDR dst_12, src_12, src_23;
     reg wnotr_12;
 
     //23
@@ -58,7 +58,7 @@ module pipe(halt, reset, clk);
     reg `ALUOP op_23;
 
     //for forwarding
-    reg `WORD addr_s, addr_d;
+    reg `REGADDR addr_s, addr_d;
     wire forward_s, forward_d;
     reg `WORD data_s_12, data_d_12;
 
@@ -66,90 +66,84 @@ module pipe(halt, reset, clk);
     reg [1:0] pcinc;
     reg jump_mem_12, jump_mem_23, jump_mem;
 
+    reg squash_12 = 0;
+    reg squash_23 = 0;
+    reg li_12 = 0;
+    reg li_23 = 0;
+    reg `WORD last_inst;
+
     InstructionMemory im(inst, src, dst, op, pc, clk);
     RegisterFile rf(data_s, data_d, data_i, src, dst, addr_i, write, clk);
     DataMemory dm(data_o, data_s_12, data_d_12, wnotr_12, clk);
-    Alu a(z, data_s_12, data_d_12, op_12);
+    Alu a(z, data_s_12, data_d_12, op_23);
 
     always @(reset) begin
         pc = 0;
         $display("0\t\t1\t\t\t2\t\t\t3");
         $display("pc\tinst\top\tsrc\tdst\tdata_s\tdata_d\tz\tdata_o\tdata_i\tjm12\tjm23\tjm");
-        write = 0;
         wb_12 = 0;
         halt = 0;
     end
 
-    always @(posedge clk) begin
+    always @(negedge clk) begin
+        if (jump_mem && data_d_12 == 0 && !squash_12) begin
+            if (src_23 == 0) begin
+                halt <= 1;
+                $display("halt");
+            end else if (src_23 == 1) begin
+                pc <= pc + 1;
+                $display("sz");
+                squash_12 <= 1;
+            end else begin
+                pc <= pc + data_s_12;
+                $display("jz");
+                squash_12 <= 1;
+            end
+        end else begin
+            pc <= pc + 1;
+        end
+    end 
+
+    always @(negedge clk) begin
         $display("%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h\t%h", 
                  pc, inst, op, src, dst, data_s, data_d, z, data_o, data_i, jump_mem_12, jump_mem_23, jump_mem);
         //$display("inc pc %d\tinstruction %h\t op src dst %h %h %h\tdata_s data_d %h %h", pc, inst, op, src, dst, data_s, data_d);
-        pcinc <= 1;
-        case (op) 
-            `OPadd:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPinvf:    begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPaddf:    begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPmulf:    begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPand:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPor:      begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPxor:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPany:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPdup:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPshr:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPf2i:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPi2f:     begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPld:      begin wb_12 <= 1; wnotr_12 <= 0; jump_mem_12 <= 0; end
-            `OPst:      begin wb_12 <= 0; wnotr_12 <= 1; jump_mem_12 <= 0; end
-            `OPjzsz:    begin 
-                wb_12 <= 0;
-                wnotr_12 <= 0;
-                case (src)
-                    0:          begin halt <= 1; jump_mem_12 <= 0; end
-                    1:          begin pc <= pc+1; jump_mem_12 <= 0;  end
-                    default:    begin jump_mem_12 <= 1; end
-                endcase
-            end
-            `OPli:      begin wb_12 <= 0; wnotr_12 <= 0; end
-            default:    begin
-                $display("halt");
-                //halt <= 1;
-            end
-        endcase
-        
-        //wb_12 <= (op !== 1'bx && op < `OPst ? 1 : 0);
-        data_s_12 <= (write && addr_i == addr_s ? data_i : data_s);
-        data_d_12 <= (write && addr_i == addr_d ? data_i : data_d);
+        squash_23 <= squash_12;
+        if (squash_12) begin
+            wb_12 <= 0;
+            squash_12 <= 0;
+        end else begin
+            wb_12       <= ((op < `OPst) === 1  ? 1 : 0);
+        end
+        wnotr_12    <= (op === `OPst        ? 1 : 0);
+        jump_mem_12 <= (op === `OPjzsz      ? 1 : 0);
+        li_12       <= (op === `OPli        ? 1 : 0);
+
+        if (li_12) begin
+            op_12 <= `OPdup;
+            dst_12 <= dst_12;
+            data_s_12 <= inst;
+            li_12 <= 0;
+            wb_23 <= 1;
+        end else begin
+            op_12 <= op;
+            dst_12 <= dst;
+            src_12 <= src;
+            wb_23 <= wb_12;
+            data_s_12 <= (wb_23 && addr_i == src_12 ? z : data_s);
+            data_d_12 <= (wb_23 && addr_i == dst_12 ? z : data_d);
+        end
     end
 
+
     always @(negedge clk) begin
-        if (jump_mem && data_d_12 == 0) begin
-            pc <= data_s_12;
-            $display("js to %h", data_s_12);
-        end else begin
-            pc <= pc+1;
-        end
-
-        wb_23 <= wb_12;
-        write <= wb_23;
-
-        op_12 <= op;
-        op_23 <= op_12;
-
-        addr_i <= dst_12;
-        dst_12 <= dst;
-        //addr_i <= dst_23;
-
-        data_i <= (op_12 == `OPld ? data_o : z);
-        //data_i <= data_o;
-        //data_i <= z;
-        //data_i <= data_i_23;
-
-        addr_s <= src;
-        addr_d <= dst;
-       
-        //jump_mem_23 <= jump_mem_12;
-        //jump_mem <= jump_mem_23;
         jump_mem <= jump_mem_12;
+        write <= wb_23;
+        op_23 <= op_12;
+        addr_i <= dst_12;
+        data_i <= (op_23 == `OPld ? data_o : z);
+        dst_23 <= dst_12;
+        src_23 <= src_12;
     end
 endmodule
 
@@ -173,7 +167,7 @@ module InstructionMemory(inst, src, dst, op, addr, clk);
     end
 
     initial begin 
-        $readmemh("prog_jumps.text.vmem", mem);
+        $readmemh("prog_dietz.text.vmem", mem);
     end 
 endmodule
 
@@ -190,7 +184,7 @@ module RegisterFile(data_s, data_d, data_i, addr_s, addr_d, addr_i, write, clk);
     always @(negedge clk) begin
         data_s <= regs[addr_s];
         data_d <= regs[addr_d];
-        if (write) begin
+        if (write && addr_i >= 4) begin
             //$display("write %h", data_i);
             regs[addr_i] <= data_i;
             //$display("%h", regs[addr_i]);
@@ -236,7 +230,7 @@ module Alu(z, x, y, op);
     input `WORD x, y;
     input `ALUOP op;
 
-    always @(x, y, op) begin
+    always @(x or y or op) begin
         //$display("ALU %h %h %h", y, op, x);
         case (op)
             `OPadd: z = y + x;
@@ -266,5 +260,5 @@ module bench;
         end
     end
     
-    always #1000 $finish();
+    //always #1000 $finish;
 endmodule

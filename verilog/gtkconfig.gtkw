@@ -1,49 +1,56 @@
 [*]
 [*] GTKWave Analyzer v3.3.64 (w)1999-2014 BSI
-[*] Wed Mar 30 22:26:42 2016
+[*] Mon Apr 18 14:37:12 2016
 [*]
 [dumpfile] "/home/dylan/school/EE480/a3/verilog/dump.vcd"
-[dumpfile_mtime] "Wed Mar 30 18:44:51 2016"
-[dumpfile_size] 4707
+[dumpfile_mtime] "Mon Apr 18 14:12:45 2016"
+[dumpfile_size] 8388
 [savefile] "/home/dylan/school/EE480/a3/verilog/gtkconfig.gtkw"
-[timestart] 0
+[timestart] 207
 [size] 1366 626
 [pos] -1 -1
-*-6.000000 10 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-6.000000 420 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] bench.
 [treeopen] bench.uut.
-[sst_width] 214
-[signals_width] 150
+[sst_width] 228
+[signals_width] 176
 [sst_expanded] 1
 [sst_vpaned_height] 160
 @28
 bench.uut.clk
-@22
+@23
 bench.uut.pc[15:0]
+@22
 bench.uut.inst[15:0]
-bench.uut.src[5:0]
-bench.uut.dst[5:0]
 bench.uut.op[3:0]
-bench.uut.op_12[3:0]
-bench.uut.z[15:0]
+bench.uut.dst[5:0]
+bench.uut.src[5:0]
+bench.uut.dst_12[5:0]
+bench.uut.dst_23[5:0]
+bench.uut.addr_i[5:0]
+bench.uut.src_12[5:0]
+bench.uut.src_23[5:0]
 @28
 bench.uut.wb_12
+bench.uut.jump_mem_12
+@22
+bench.uut.op_12[3:0]
+bench.uut.op_23[3:0]
+bench.uut.data_d_12[15:0]
+bench.uut.data_s_12[15:0]
+bench.uut.z[15:0]
+@28
+bench.uut.wb_23
+@22
+bench.uut.data_i[15:0]
+@28
 bench.uut.write
 @22
-bench.uut.src[5:0]
-bench.uut.dst[5:0]
-bench.uut.dst_12[5:0]
-bench.uut.addr_i[5:0]
-bench.uut.data_i[15:0]
-bench.uut.data_d_12[15:0]
-bench.uut.data_d[15:0]
-bench.uut.addr_d[15:0]
-bench.uut.addr_i[5:0]
-bench.uut.addr_s[15:0]
-bench.uut.data_d[15:0]
-bench.uut.data_s[15:0]
-bench.uut.data_s_12[15:0]
-@23
-bench.uut.data_i[15:0]
+bench.uut.a.x[15:0]
+bench.uut.a.y[15:0]
+bench.uut.a.z[15:0]
+@28
+bench.uut.squash_12
+bench.uut.li_12
 [pattern_trace] 1
 [pattern_trace] 0
