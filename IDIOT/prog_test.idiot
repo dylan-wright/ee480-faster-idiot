@@ -1,0 +1,43 @@
+dup $u0, $all
+xor $u0, $all
+sz $u0          ;did the dup work?
+sys
+dup $u0, $all
+xor $u0, $all
+sz $u0
+sys             ;did the sz work?
+dup $u0, $1
+dup $u1, $0
+add $u1, $u0
+xor $u1, $u0
+sz $u1          ;did the add work?
+sys
+dup $u0, $1
+dup $u1, $1
+or $u0, $u1
+xor $u0, $u1
+sz $u0
+sys
+dup $u0, $1
+dup $u1, $0
+or $u0, $u1
+xor $u1, $u0
+sz $u1
+sys
+li $u1, 0xffff
+xor $u1, $all
+sz $u1
+sys             ;did the li work?
+add $0, $0
+add $0, $0
+add $0, $0
+add $0, $0
+add $0, $0
+add $0, $0
+add $0, $0
+add $0, $0
+add $0, $0
+add $0, $0
+add $0, $0
+add $0, $0
+add $0, $0
