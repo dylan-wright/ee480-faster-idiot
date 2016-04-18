@@ -167,7 +167,7 @@ module InstructionMemory(inst, src, dst, op, addr, clk);
     end
 
     initial begin 
-        $readmemh("prog_dietz.text.vmem", mem);
+        $readmemh("prog_test.text.vmem", mem);
     end 
 endmodule
 
